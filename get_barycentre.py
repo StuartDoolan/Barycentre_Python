@@ -145,7 +145,7 @@ def get_barycentre(tGPS, detector, source, efile, sfile):
     emit = barycentre(baryinput, earthstruct)
     [emitdeltaT, emittDot, emittes, emittens, emitroemer,  emiterot, emiteinstein, 
     emitshapiro] = emit
-    print emit
+    
     
     for i in range(length):
         emitdt[i] = emitdeltaT;
@@ -156,5 +156,5 @@ def get_barycentre(tGPS, detector, source, efile, sfile):
         emitE[i] = emiteinstein;
         emitS[i] = emitshapiro;
     
-    emit = [emitdt, emitte, emitdd, emitR, emitER, emitE, emitS] ## final output!!!
+    emit = np.array([[emitdt], [emitte], [emitdd], [emitR], [emitER], [emitE], [emitS]]) ## final output!!!
     return emit

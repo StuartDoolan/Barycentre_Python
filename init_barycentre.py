@@ -89,7 +89,6 @@ def init_barycentre(efile, sfile):
     ephemSpos = [xpos, ypos, zpos]
     ephemSvel = [velx, vely, velz]
     ephemSacc = [accx, accy, accz]
-    print('I work!')
     
     ### gives all data as a structured list (probably not perfect)
     Sephem = np.array([ephemSgps, Sdttables, Sentries, ephemSpos, ephemSvel, ephemSacc]) 

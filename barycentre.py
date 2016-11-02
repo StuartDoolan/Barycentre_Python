@@ -255,7 +255,6 @@ def barycentre(baryinput, earthstruct):
         emittes =(float(bingpss)+float(deltaTint))
         emittens = floor(1.e9*(bingpsns*1.e-9 + emitdeltaT - deltaTint));
     
-    print('barycentre works')
     emitroemer = roemer;
     emiterot = erot;
     emiteinstein = eartheinstein;

@@ -467,5 +467,4 @@ def barycentre_earth(Eephem, Sephem, tGPS):
             [earthdelpsi, earthdeleps, earthgastRad],
             [eartheinstein, earthdeinstein], 
             [earthse, earthdse, earthdrse, earthrse]]
-    print('I still work!')
     return earthstruct
