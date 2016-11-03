@@ -48,12 +48,13 @@ def barycentre(baryinput, earthstruct):
     [binsloc, bingps, baryinsource]= baryinput 
     [bingpss, bingpsns] = bingps
     [binalpha, bindelta, bindInv] = baryinsource
-    
+    ##print(type(baryinput))
+    ##print(type(bingps))
     [[earthposNow, earthvelNow, earthgmstRad],
     [earthtzeA, earthzA, earththetaA],
     [earthdelpsi, earthdeleps, earthgastRad],
     [eartheinstein, earthdeinstein],
-    [earthse, earthdse, earthdrse, earthrse]] = earthstruct
+    [earthse, earthdse, earthdrse, earthrse]] = np.array(earthstruct)
     
     
     
@@ -63,7 +64,7 @@ def barycentre(baryinput, earthstruct):
     
     tgps[0] = bingpss;
     tgps[1] = bingpsns;
-    
+    ##print(tgps)
     alpha = binalpha;
     delta = bindelta;
     
@@ -82,7 +83,7 @@ def barycentre(baryinput, earthstruct):
     rd = sqrt( binsloc[0]*binsloc[0] 
         + binsloc[1]*binsloc[1] 
         + binsloc[2]*binsloc[2])
-    
+    ##print(rd)
     if rd == 0.0:
         latitude = pi/2;
     else:
@@ -99,9 +100,9 @@ def barycentre(baryinput, earthstruct):
     roemer = 0;
     droemer = 0;
     
-    for j in range(0,2):
-        roemer = roemer + s[j]*earthposNow[j];
-        droemer = droemer + s[j]*earthvelNow[j];
+    for j in range(3):
+        roemer = roemer + s[j]*earthposNow[j]
+        droemer = droemer + s[j]*earthvelNow[j]
     
     
     # ********************************************************************
@@ -134,8 +135,8 @@ def barycentre(baryinput, earthstruct):
     erot = rd*NdotD;
     
     derot = OMEGA*rd*cos(latitude)*( 
-        - sin(earthgastRad+longitude-earthzA)*cosDeltaCosAlphaMinusZA 
-        + cos(earthgastRad+longitude-earthzA)*cosDeltaSinAlphaMinusZA )
+        - sin(earthgastRad+longitude-earthzA[0])*cosDeltaCosAlphaMinusZA 
+        + cos(earthgastRad+longitude-earthzA[0])*cosDeltaSinAlphaMinusZA )
     
     
     # --------------------------------------------------------------------------
@@ -242,7 +243,7 @@ def barycentre(baryinput, earthstruct):
     # -----------------------------------------------------------------------
     
     emitdeltaT = roemer + erot + eartheinstein - shapiro + finiteDistCorr;
-    
+    ###print([roemer], [erot], [eartheinstein], [shapiro], [finiteDistCorr])
     emittDot = (1.e0 + droemer + derot + earthdeinstein 
         - dshapiro + dfiniteDistCorr)
     
@@ -259,6 +260,8 @@ def barycentre(baryinput, earthstruct):
     emiterot = erot;
     emiteinstein = eartheinstein;
     emitshapiro = -shapiro;
-    emit = [emitdeltaT, emittDot, emittes, emittens, emitroemer,  emiterot, emiteinstein, 
-    emitshapiro]
+    
+    emit = np.array([emitdeltaT, emittDot, emittes, emittens, emitroemer,  emiterot, emiteinstein, 
+    emitshapiro])
+    ######print(emitdeltaT)
     return emit

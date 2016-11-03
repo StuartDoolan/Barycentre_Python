@@ -97,11 +97,11 @@ def get_barycentre(tGPS, detector, source, efile, sfile):
     binsloc[:] = [x / C_SI for x in binsloc]  # sets positions in light seconds
     
     # Set source info
-    [sourcealpha, sourcedelta] = source
+    [sourcealpha, sourcedelta] = np.array(source)
     binalpha = sourcealpha # right ascension in radians
     bindelta = sourcedelta # declination in radians
     bindInv = 0 # inverse distance (assumption is that source is very distant)
-    baryinsource = [binalpha, bindelta, bindInv]
+    baryinsource = np.array([binalpha, bindelta, bindInv])
     
     #perform init_barycentre, import data
     [Eephem, Sephem] =init_barycentre('earth00-19-DE405.dat', 'sun00-19-DE405.dat')
@@ -123,31 +123,34 @@ def get_barycentre(tGPS, detector, source, efile, sfile):
     emitE =np.zeros([length,1]);
     emitS =np.zeros([length,1]);
     
-    ### perform earth barycentring
-    earthstruct = barycentre_earth(Eephem, Sephem, tGPS)
-    
-    [[earthposNow, earthvelNow, earthgmstRad],
-    [earthtzeA, earthzA, earththetaA],
-    [earthdelpsi, earthdeleps, earthgastRad],
-    [eartheinstein, earthdeinstein],
-    [earthse, earthdse, earthdrse, earthrse]] = earthstruct
+   
     
     for i in range(length):
         # split time into seconds and nanoseconds
         tts = floor(tGPS[i]);
         ttns = np.multiply((tGPS[i]-tts),1e9) 
-    
+        tt= np.array([tts, ttns])
+        
+            ### perform earth barycentring
+        earthstruct = barycentre_earth(Eephem, Sephem, tt)
+        
+        [[earthposNow, earthvelNow, earthgmstRad],
+        [earthtzeA, earthzA, earththetaA],
+        [earthdelpsi, earthdeleps, earthgastRad],
+        [eartheinstein, earthdeinstein],
+        [earthse, earthdse, earthdrse, earthrse]] = np.array(earthstruct)
         bingpss = tts;
         bingpsns = ttns;
-        bingps = [bingpss, bingpsns]
-        baryinput = [binsloc, bingps, baryinsource]    
+        bingps = np.array([bingpss, bingpsns])
+        baryinput = np.array([binsloc, bingps, baryinsource])   
     
-    emit = barycentre(baryinput, earthstruct)
-    [emitdeltaT, emittDot, emittes, emittens, emitroemer,  emiterot, emiteinstein, 
-    emitshapiro] = emit
+  
+        #perform barycentring   
+        emit = np.array(barycentre(baryinput, earthstruct))
+        [emitdeltaT, emittDot, emittes, emittens, emitroemer,  emiterot, emiteinstein, 
+        emitshapiro] = np.array(emit)
     
     
-    for i in range(length):
         emitdt[i] = emitdeltaT;
         emitte[i] = [emittens*1e-9 + emittes]
         emitdd[i] = emittDot;

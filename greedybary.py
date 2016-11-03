@@ -11,8 +11,7 @@ from get_barycentre import get_barycentre
 
   
 #creates time vector of 100 elements between values listed, far too few but just for tests
-tGPS = np.linspace(630720013, 1261872018)
-dt = tGPS[1]-tGPS[0]
+
 detector = 'gb'
 
 sourcealpha = np.zeros(100)
@@ -25,8 +24,13 @@ for x in range(100):
 
 source = [sourcealpha, sourcedelta]
 sourcetest = [0.9, 0.622]
+
+#create set of training waveforms, 86400s in a day
 wl = 1024
-tssize = 100 # training set size
+tGPS = np.linspace(630720013, 630720013+86400, wl)
+dt = tGPS[1]-tGPS[0]
+
+tssize = 360 # training set size
 TS = np.zeros((tssize, wl))
 
 for i in range(tssize):
