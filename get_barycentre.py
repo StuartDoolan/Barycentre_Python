@@ -17,7 +17,6 @@ def get_barycentre(tGPS, detector, source, efile, sfile):
     # telescopes use values from LAL.
     binsloc = np.zeros((3,1));  ## double brackets just cost me an hour!
     
-    ##detector = 't1' # dummy input
     
     
     if detector.upper() == 'GB': # GREEN BANK #case insensitive string compare
@@ -92,7 +91,7 @@ def get_barycentre(tGPS, detector, source, efile, sfile):
     elif detector.upper() ==  'GEOCENTER' or detector.upper() ==  'GEOCENTRE': # the geocentre
         binsloc[0] = 0;
         binsloc[1] = 0;
-        binsloc[2] = 0; ##it all works so far!
+        binsloc[2] = 0; 
         
     binsloc[:] = [x / C_SI for x in binsloc]  # sets positions in light seconds
     

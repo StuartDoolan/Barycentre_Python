@@ -98,7 +98,7 @@ def get_bary_in_loop(tGPS, detector, source, Eephem, Sephem):
         
     binsloc[:] = [x / C_SI for x in binsloc]  # sets positions in light seconds
     
-    # Set source info
+    # Set info
     [sourcealpha, sourcedelta] = np.array(source)
     binalpha = sourcealpha # right ascension in radians
     bindelta = sourcedelta # declination in radians

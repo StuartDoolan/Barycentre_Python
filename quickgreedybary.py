@@ -1,6 +1,5 @@
 import numpy as np
 import random as r
-# insert path to greedy.py
 import greedy
 from init_barycentre import init_barycentre
 from get_bary_greedy import get_bary_in_loop
@@ -12,48 +11,53 @@ from get_bary_greedy import get_bary_in_loop
 detector = 'gb'
 
 
-
-
-#create set of training waveforms, 86400s in a day
-wl = 1024
-tGPS = np.linspace(630720013, 630720013+864000, wl)
+#sets vector of time intervals of length wl from random acceptable starting point for one days worth of data
+wl = 102
+start = r.randint(630720013, 1261785618)
+day = 86400
+tGPS = np.linspace(start, start+day, wl)
 dt = tGPS[1]-tGPS[0]
 
-tssize = 1000 # training set size
+#sets training set size and initialises source arrays
+tssize = 100 
 sourcealpha = np.zeros(tssize)
 sourcedelta = np.zeros(tssize)
-TS = np.zeros((tssize, wl))
-nTS=TS
-##fTS= TS+TS
+
+#initialises training sets
+TS = np.zeros((3,tssize, wl))
+fTS = np.zeros((tssize, 3*wl))
 for i in range(tssize):
     
-    #randomise RA and Dec between 0,pi/2 and -pi/2, pi/2 respectively
+    #randomise RA and Dec between 0,2pi and -pi/2, pi/2 respectively
     ##adjusted to smaller ranges to see if improves results
-    sourcealpha[i] = 2*np.pi*(r.uniform(0,0.5))
-    sourcedelta[i] = np.arccos(2*(r.uniform(0,0.25))-1)-np.pi/2
+    sourcealpha[i] = 2*np.pi*(r.uniform(0,0.000025))
+    sourcedelta[i] = np.arccos(2*(r.uniform(0,0.00001))-1)-np.pi/2
     
     #performs barycentring functions for source i
     emit = get_bary_in_loop(tGPS, detector,[sourcealpha[i], sourcedelta[i]], Eephem, Sephem) 
 
+    #creates training vectors 
     [emitdt, emitte, emitdd, emitR, emitER, emitE, emitS] = emit
-    TS[i]= np.reshape(emitdt, wl)
-    #TS[1][i]= np.reshape(emitte[0], wl)
-    #TS[2][i]= np.reshape(emitdd, wl)
-    #print(emitte[0])
-    #print(emitdt[0][0])
-    #print TS[i]
+    TS[0][i]= np.reshape(emitdt, wl)
+    TS[1][i]= np.reshape(emitte, wl)
+    TS[2][i]= np.reshape(emitdd, wl)
+    
+    #concatenates arrays
+    fTS[i] = np.hstack((TS[0][i],TS[1][i], TS[2][i]))
+    fTS[i] /= np.sqrt(np.abs(greedy.dot_product(dt, fTS[i], fTS[i])))
 
-    # normalise training set
-    nTS[i] /= np.sqrt(np.abs(greedy.dot_product(dt, TS[i], TS[i])))
+    ## normalises training vectors
+    ##TS[0][i] /= np.sqrt(np.abs(greedy.dot_product(dt, TS[0][i], TS[0][i])))
+    ##TS[1][i] /= np.sqrt(np.abs(greedy.dot_product(dt, TS[1][i], TS[1][i])))
+    ##TS[2][i] /= np.sqrt(np.abs(greedy.dot_product(dt, TS[2][i], TS[2][i])))
 
-    #nTS[0][0][i] /= np.sqrt(np.abs(greedy.dot_product(dt, TS[0][i], TS[0][i])))
-    #nTS[1][0][i] /= np.sqrt(np.abs(greedy.dot_product(dt, TS[1][i], TS[1][i])))
-    #TS[2][i] /= np.sqrt(np.abs(greedy.dot_product(dt, TS[2][i], TS[2][i])))
+##print('outloop')
 
-##fTS=TS+TS
-#print('outloop')
-#print(TS)
 # tolerance for stopping algorithm
 tol = 1e-12
 
-RB_matrix = greedy.greedy(nTS, dt, tol)
+##concatenates arrays, so each i array now [emitdt, emitte emitdd] 
+##fTS = np.hstack((TS[0],TS[1], TS[2]))
+
+#forms normlised basis vectors, except happens far too quickly to be right
+RB_matrix = greedy.greedy(fTS, dt, tol)
