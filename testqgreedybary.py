@@ -54,20 +54,26 @@ tol = 1e-12
 #forms normalised basis vectors, except happens far too quickly to be right
 RB = greedy.greedy(TS, dt, tol)
 
-##### Test this RB can recover a specific source from ephem data
+##### Test this RB can span all random points
+sourcealpha2 = np.zeros(10)
+sourcedelta2 = np.zeros(10)
+Edt = np.zeros((10,wl))
+residual = np.zeros(10)
+solutions = np.zeros((10,4))
+for i in range(10):
 
-#define location to test (arbitrary)
-sourcealpha2 = 1
-sourcedelta2 = 0.5
-source = np.array([sourcealpha2, sourcedelta2 ])
-
-#apply get barycentre and find emitdt data for this source
-emit = get_bary_in_loop(tGPS, detector,source, Eephem, Sephem)
-[emitdt, emitte, emitdd, emitR, emitER, emitE, emitS] = emit
-Edt= np.reshape(emitdt, wl)
-Edt /= np.sqrt(np.abs(greedy.dot_product(dt, Edt, Edt)))
-
-
-#solve lin matrix eq RBx = Edt, gives residuals approx e-26, success? 
-np.linalg.lstsq(RB.T,Edt, 1*10**-12)
+    #define location to test (arbitrary)
+    sourcealpha2[i] = 2*np.pi*(r.uniform(0,1))
+    sourcedelta2[i] = np.arccos(2*(r.uniform(0,1))-1)-np.pi/2
+    source = np.array([sourcealpha2, sourcedelta2 ])
+    
+    #apply get barycentre and find emitdt data for these sources
+    emit = get_bary_in_loop(tGPS, detector,[sourcealpha2[i], sourcedelta2[i]], Eephem, Sephem)
+    [emitdt, emitte, emitdd, emitR, emitER, emitE, emitS] = emit
+    Edt[i]= np.reshape(emitdt, wl)
+    Edt[i] /= np.sqrt(np.abs(greedy.dot_product(dt, Edt[i], Edt[i])))
+    
+    
+    #solve lin matrix eq RBx = Edt, gives residuals so far smaller than e^-26, success? 
+    [solutions[i], residual[i], alsodontuse, same] = np.linalg.lstsq(RB.T,Edt[i], 1*10**-12)
 
