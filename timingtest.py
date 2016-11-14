@@ -48,9 +48,8 @@ for i in range(tssize):
     TS[i] /= np.sqrt(np.abs(greedy.dot_product(dt, TS[i], TS[i])))
     #print[i]
     
-    #timebary[i] = timeit (or whole loop...)
 ##print('outloop')
-
+#time bary fin
 # tolerance for stopping algorithm
 tol = 1e-12
 
@@ -130,6 +129,3 @@ diff=Edt-newEdt
 print('the mean difference is ' + str(np.mean(diff)))
 print('the maximum difference is ' + str(np.max(diff)))
 
-#plt.hist(diff, bins=np.logspace(-1, 1.0, 50))
-#plt.gca().set_xscale("log")
-#plt.show()
