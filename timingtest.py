@@ -30,11 +30,11 @@ TS = np.zeros((tssize, wl))
 
 ## initialise timetest vectors
 #number of time values
-repeats = 10
+repeats = 100
 
 #timer either side of creating Reduced Basis
-tstRB = np.zeros(repeats)
-tendRB = np.zeros(repeats)
+#tstRB = np.zeros(repeats)
+#tendRB = np.zeros(repeats)
 
 #time from creating Edt to EdtRB for Edt 
 tstEdRB = np.zeros(repeats)
@@ -46,37 +46,36 @@ tendFit = np.zeros(repeats)
 
 tstart = timeit.default_timer()
 
-for a in range(repeats):
-    tstRB[a] = timeit.default_timer()
-    for i in range(tssize):
-        
-        #randomise RA and Dec between 0,2pi and -pi/2, pi/2 respectively
-        ##adjusted to smaller ranges to see if improves results
-        sourcealpha[i] = 2*np.pi*(r.uniform(0,1))
-        sourcedelta[i] = np.arccos(2*(r.uniform(0,1))-1)-np.pi/2
-        
-        #performs barycentring functions for source i
-        emit = get_bary_in_loop(tGPS, detector,[sourcealpha[i], sourcedelta[i]], Eephem, Sephem) 
+#tstRB[a] = timeit.default_timer()
+for i in range(tssize):
     
-        #creates training vectors of time difference
-        [emitdt, emitte, emitdd, emitR, emitER, emitE, emitS] = emit
-        TS[i]= np.reshape(emitdt, wl)
+    #randomise RA and Dec between 0,2pi and -pi/2, pi/2 respectively
+    ##adjusted to smaller ranges to see if improves results
+    sourcealpha[i] = 2*np.pi*(r.uniform(0,1))
+    sourcedelta[i] = np.arccos(2*(r.uniform(0,1))-1)-np.pi/2
     
+    #performs barycentring functions for source i
+    emit = get_bary_in_loop(tGPS, detector,[sourcealpha[i], sourcedelta[i]], Eephem, Sephem) 
+
+    #creates training vectors of time difference
+    [emitdt, emitte, emitdd, emitR, emitER, emitE, emitS] = emit
+    TS[i]= np.reshape(emitdt, wl)
+
+
+    ## normalises training vectors
+    TS[i] /= np.sqrt(np.abs(greedy.dot_product(dt, TS[i], TS[i])))
+    #print[i]
     
-        ## normalises training vectors
-        TS[i] /= np.sqrt(np.abs(greedy.dot_product(dt, TS[i], TS[i])))
-        #print[i]
-        
-    
-    # tolerance for stopping algorithm
-    tol = 1e-12
-    
-    
-    
-    #forms normalised basis vectors
-    RB = greedy.greedy(TS, dt, tol)
-    
-    tendRB[a] = timeit.default_timer()
+
+# tolerance for stopping algorithm
+tol = 1e-12
+
+
+
+#forms normalised basis vectors
+RB = greedy.greedy(TS, dt, tol)
+
+#tendRB[a] = timeit.default_timer()
 
 #####timed up to here!
 
@@ -88,7 +87,7 @@ for b in range(repeats):
     
     ##### Test this RB can span all random points
     #length of check vector
-    csize = 100
+    csize = 10
     sourcealpha2 = np.zeros(csize)
     sourcedelta2 = np.zeros(csize)
     Edt = np.zeros((csize,wl))
@@ -105,17 +104,8 @@ for b in range(repeats):
     #for i in range(no_v):
     l = np.linspace(csize/(2*no_v),csize,no_v,False)
     p = l.astype(int)
-    for i in range(no_v):
-        for j in range(no_v):
-            #creates vectors of reduced bases corresponding to time location of points used 
-            tRB[i][j] = RB[i][p[j]]
-    tendEdRB[b] = timeit.default_timer()
-
-
-for c in range(repeats):
-    tstFit[c] = timeit.default_timer()
-    #inverts tRB for use solving x = (AB)tRB
-    C = np.linalg.inv((tRB))
+   
+  
     ##creates Edt to be tested with RB
     for i in range(csize):
     
@@ -129,13 +119,26 @@ for c in range(repeats):
         [emitdt2, emitte, emitdd, emitR, emitER, emitE, emitS] = emit
         Edt[i]= np.reshape(emitdt2, wl)
         
-    
+    tendEdRB[b] = timeit.default_timer()
+    print('EdRB ' + str(b))   
         
         #takes points from basis vectors at corresponding tGPS entries
         ## Want no_v points for each x[i] extracted from Edt[j]
+    for i in range(csize):
         for j in range(no_v):
             x[i][j] = Edt[i][p[j]]    
-            
+  
+
+for i in range(no_v):
+        for j in range(no_v):
+            #creates vectors of reduced bases corresponding to time location of points used 
+            tRB[i][j] = RB[i][p[j]]
+
+for c in range(repeats):            
+    tstFit[c] = timeit.default_timer()
+    #inverts tRB for use solving x = (AB)tRB    
+    C = np.linalg.inv((tRB))
+
     #solves x=(AB)(tRB)
     AB = np.dot(x,C)
     
@@ -147,12 +150,15 @@ for c in range(repeats):
     ##
     
     newEdt=np.dot(AB,RB)
-    diff=Edt-newEdt
-    print('the mean difference is ' + str(np.mean(diff)))
-    print('the maximum difference is ' + str(np.max(diff)))
     tendFit[c] = timeit.default_timer()
+    print('loop 2 fit ' + str(c))
+
+
+    #diff=Edt-newEdt
+    #print('the mean difference is ' + str(np.mean(diff)))
+    #print('the maximum difference is ' + str(np.max(diff)))
 tend = timeit.default_timer()
 print(tend-tstart)
-tRB = tendRB-tstRB
+#tRB = tendRB-tstRB
 tEdtRB = tendEdRB - tstEdRB
 tFit = tendFit - tstFit

@@ -13,20 +13,27 @@ detector = 'h1'
 
 
 #sets vector of time intervals of length wl from random acceptable starting point for one days worth of data
-wl = 400
+wl = 1000
 #start = r.randint(630720013, 1261785618)
-start = 630720013
-day = 86400
-tGPS = np.linspace(start, start+day, wl)
+tGPS = np.linspace(900000000, 900000000+86400, 1000)
 dt = tGPS[1]-tGPS[0]
 
 #sets training set size and initialises source arrays
-tssize = 100
-sourcealpha = np.zeros(tssize)
-sourcedelta = np.zeros(tssize)
+tssize = 1000
+with open('skyposvals.txt') as f:
+    content = f.readlines()
+    
+content = [x.strip() for x in content]
 
-sourcealpha = np.linspace(0.1,2*np.pi-0.1, tssize)
-sourcedelta = np.linspace(-np.pi/2, np.pi/2, tssize)
+
+
+nearly = [x.split() for x in content]
+
+myarray = np.asarray(nearly)
+flarray =myarray.astype(float)
+finarray = flarray.T
+sourcealpha = finarray[0]
+sourcedelta = finarray[1]
 #initialises training sets
 TS = np.zeros((tssize, wl))
 for i in range(tssize):

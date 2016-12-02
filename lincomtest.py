@@ -14,9 +14,9 @@ detector = 'h1'
 
 #sets vector of time intervals of length wl from random acceptable starting point for one days worth of data
 wl = 1024
-start = r.randint(630720013, 1261785618)
 day = 86400
-tGPS = np.linspace(start, start+30*day, wl)
+start = r.randint(630720013, 1261872018-365*day)
+tGPS = np.linspace(start, start+365*day, wl)
 dt = tGPS[1]-tGPS[0]
 
 #sets training set size and initialises source arrays
@@ -46,9 +46,8 @@ for i in range(tssize):
 
     ## normalises training vectors
     TS[i] /= np.sqrt(np.abs(greedy.dot_product(dt, TS[i], TS[i])))
-    #print[i]
+    print[i]
     
-    #timebary[i] = timeit (or whole loop...)
 ##print('outloop')
 
 # tolerance for stopping algorithm

@@ -4,8 +4,13 @@ def init_barycentre(efile, sfile):
     ## Eephem
     # read in file
     f = open(efile, 'r')
-    if False:
-        print('Error, could not open Earth ephemeris file');   # displays error message
+    
+    #test succesfully opened file
+    if False: 
+        print('Error, could not open Earth ephemeris file')
+        raise SystemExit()
+   
+   #read in data from file
     filecontents = f.readlines()
     f.close()
     
@@ -51,7 +56,8 @@ def init_barycentre(efile, sfile):
     # read in file
     f = open(sfile, 'r')
     if False:
-        print('Error, could not open Sun ephemeris file');   # displays error message
+        print('Error, could not open Sun ephemeris file')
+        raise SystemExit()
     filecontents = f.readlines()
     f.close()
     
@@ -93,4 +99,3 @@ def init_barycentre(efile, sfile):
     ### Returns ndarrays Eephem & Sephem, Eephem[3][0] = xpos, for example
     Sephem = np.array([ephemSgps, Sdttables, Sentries, ephemSpos, ephemSvel, ephemSacc]) 
     return Eephem, Sephem
-  ##confident this does exactly the same as matlab!

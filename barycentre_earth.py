@@ -5,7 +5,7 @@ def barycentre_earth(Eephem, Sephem, tGPS):
     from math import sin
     from math import sqrt
     from math import floor
-    
+
     # This function takes in ephemeris data structures for the Earth (ephemE)
     # and Sun (ephemS), containing the following information:
     #   ephemgps - GPS times of the data within the ephemeris
@@ -46,7 +46,7 @@ def barycentre_earth(Eephem, Sephem, tGPS):
     #   earthdrse
     #   earthrse
     #
-    # This function is bascially a Matlab-ified version of Curt Culter's LAL
+    # This function is translated from Matthew Pitkin's Matlab-ified version of Curt Culter's LAL
     # function LALBarycenterEarth, which itself uses functions from TEMPO.
     
     [ephemEgps, Edttables, Eentries, ephemEpos, ephemEvel, ephemEacc] = np.array(Eephem)
@@ -75,44 +75,48 @@ def barycentre_earth(Eephem, Sephem, tGPS):
     
     
   
-    tgps = np.zeros((2,1));
+    tgps = np.zeros((2,1))
     
-    tgps[0] = tGPS[0];
-    tgps[1] = tGPS[01];
+    tgps[0] = tGPS[0]
+    tgps[1] = tGPS[01]
     
     # set GPS times of the first data points in the Earth and Sun ephemeris
     # files
     tinitE = ephemEgps[0] 
-    tinitS = ephemSgps[0];
+    tinitS = ephemSgps[0]
     
-    t0e=tgps[0]-tinitE; 
+    t0e=tgps[0]-tinitE 
     
     # finding Earth table entry closest to arrival time
     ientryE = int(floor(float(t0e)/float(Edttables)+0.5))
     
     
-    t0s=tgps[0]-tinitS;
+    t0s=tgps[0]-tinitS
     
     # finding Sun table entry closest to arrival time
     ientryS = int(floor(float(t0e)/float(Sdttables)+0.5))
     
     ## Making sure tgps is within earth and sun ephemeris arrays
     ##ie between 630720013 and 1261872018
+    
     if ientryE < 0 or ientryE >=  int(Eentries):
-        print('Problem with Earth ephemeris data. Time out of ephemeris file bounds.');
+        print('Problem with Earth ephemeris data. Time out of ephemeris file bounds.')
+        raise SystemExit()
     
     
+
     if ientryS < 0 or ientryS >=  int(Sentries):
-        print('Problem with Sun ephemeris data. Time out of ephemeris file bounds');
+        print('Problem with Sun ephemeris data. Time out of ephemeris file bounds')
+        raise SystemExit()
         
-    # tdiff is arrival time minus closest Earth table entry; tdiff can be pos.
+    # tdiff is arrival time minus closest Earth table entry tdiff can be pos.
     # or neg.
-    tdiffE = t0e - float(Edttables)*float(ientryE) + tgps[1]*1.e-9;
-    tdiff2E = tdiffE*tdiffE;
+    tdiffE = t0e - float(Edttables)*float(ientryE) + tgps[1]*1.e-9
+    tdiff2E = tdiffE*tdiffE
     
     # same for Sun
-    tdiffS = t0s - float(Sdttables)*float(ientryS)  + tgps[1]*1.e-9;
-    tdiff2S = tdiffS*tdiffS;
+    tdiffS = t0s - float(Sdttables)*float(ientryS)  + tgps[1]*1.e-9
+    tdiff2S = tdiffS*tdiffS
     
     # ********************************************************************
     # Calucate position and vel. of center of earth
@@ -121,8 +125,8 @@ def barycentre_earth(Eephem, Sephem, tGPS):
     vel = np.array([ephemEvel[0][ientryE], ephemEvel[1][ientryE], ephemEvel[2][ientryE]])
     acc = np.array([ephemEacc[0][ientryE], ephemEacc[1][ientryE], ephemEacc[2][ientryE]])##fixed
     
-    earthposNow = np.zeros((3,1));
-    earthvelNow = np.zeros((3,1));
+    earthposNow = np.zeros((3,1))
+    earthvelNow = np.zeros((3,1))
     
     for j in range(3):
             earthposNow[j] = pos[j] + vel[j]*tdiffE + 0.5*acc[j]*tdiff2E 
@@ -131,62 +135,64 @@ def barycentre_earth(Eephem, Sephem, tGPS):
     # ********************************************************************
     # Now calculating Earth's rotational state.
     
-    eps0 = 0.40909280422232891; # obliquity of ecliptic at JD 245145.0  
+    eps0 = 0.40909280422232891 # obliquity of ecliptic at JD 245145.0  
     
-    # number of leap secs added to UTC calendar since Jan 1, 2000 00:00:00 UTC;
+    # number of leap secs added to UTC calendar since Jan 1, 2000 00:00:00 UTC
     # leap is a NEGATIVE number for dates before Jan 1, 2000.
     
     # get number of leap seconds
     
     # check we're not before the leap second table
+  
     if tGPS[0] < leapstable[0,1]:
-        print('GPS time is prior to start of data table');
-    
+        print('GPS time is prior to start of data table')
+        raise SystemExit()
+        
     #account for 0 indexing ######### check
-    numleaps =len(leapstable);
+    numleaps =len(leapstable)
     
     # if after time is after end of table then add all leap second
     if tGPS[0] > leapstable[numleaps-1,1]:
-        leaps = leapstable[numleaps-1,2] - 19;
+        leaps = leapstable[numleaps-1,2] - 19
     else:
         for leap in range(2,numleaps+1):
             if tGPS[0] < leapstable[leap-1,1]:
-                break;
+                break
         # number of leap seconds since start of GPS
-        leaps = leapstable[leap-2,2] - 19;
+        leaps = leapstable[leap-2,2] - 19
     # number of leap seconds since 2000
-    leapsSince2000 = leaps - 13; 
+    leapsSince2000 = leaps - 13 
     
     
     # number of full seconds (integer) on elapsed on UT1 clock from Jan 1, 2000
     # 00:00:00 UTC to present
     # first subtract off value of gps clock at Jan 1, 2000 00:00:00 UTC
-    tuInt = tGPS[0] - 630720013;
+    tuInt = tGPS[0] - 630720013
     
     # next subtract off # leap secs added to UTC calendar since Jan 1, 2000
     # 00:00:00 UTC
-    ut1secSince1Jan2000 = tuInt - leapsSince2000;
+    ut1secSince1Jan2000 = tuInt - leapsSince2000
     
     # time elapsed on UT1 clock (in Julian centuries) between Jan 1.5 2000
     # (= J2000 epoch) and the present time (tGPS)
-    tuJC = (ut1secSince1Jan2000 + tgps[1]*1.e-9 - 43200)/(8.64e4*36525); 
+    tuJC = (ut1secSince1Jan2000 + tgps[1]*1.e-9 - 43200)/(8.64e4*36525) 
     
     # UT1 time elapsed, in Julian centuries, since  Jan 1.5 2000 (= J2000
     # epoch) and pulse arrival time
     
     # full days on ut1 clock since Jan 1, 2000 00:00:00 UTC
-    fullUt1days = floor(ut1secSince1Jan2000/8.64e4);
+    fullUt1days = floor(ut1secSince1Jan2000/8.64e4)
     
     # UT1 time elapsed, in Julian centuries between Jan 1.5 2000 (= J2000
     # epoch) and midnight before gps(1)
-    tu0JC = (fullUt1days - 0.5)/36525.0;
+    tu0JC = (fullUt1days - 0.5)/36525.0
     
     # time, in Jul. centuries, between pulse arrival time and previous midnight
     # (UT1)
-    dtu= tuJC - tu0JC;
+    dtu= tuJC - tu0JC
     
     # days (not an integer) on GPS (or TAI,etc.) clock since J2000
-    daysSinceJ2000 = (tuInt -43200)/8.64e4; 
+    daysSinceJ2000 = (tuInt -43200)/8.64e4 
     
     # ----------------------------------------------------------------------
     # in below formula for gmst0 & gmst, on rhs we SHOULD use time elapsed
@@ -197,27 +203,27 @@ def barycentre_earth(Eephem, Sephem, tGPS):
     # formula for Greenwich mean sidereal time on p.50 of Explanatory Supp. to
     # Ast Alm. gmst unit is sec, where 2pi rad = 24*60*60sec
     gmst0 = 24110.54841e0 + tu0JC*(8640184.812866 + tu0JC*(0.093104 
-        - tu0JC*6.2e-6));
+        - tu0JC*6.2e-6))
     
     # -----------------------------------------------------------------------
     # Explan. of tu0JC*8640184.812866e0 term: when tu0JC0=0.01 Julian centuries
     #(= 1 year), Earth has spun an extra 86401.84 sec (approx one revolution)
     # with respect to the stars.
     #
-    # Note: this way of organizing calc of gmst was stolen from TEMPO;
+    # Note: this way of organizing calc of gmst was stolen from TEMPO
     # see subroutine lmst (= local mean sidereal time) .
     # ------------------------------------------------------------------------
     
     gmst = gmst0+ dtu*(8.64e4*36525 + 8640184.812866 + 
         0.093104*(tuJC + tu0JC) - 6.2e-6*(tuJC*tuJC + tuJC*tu0JC + 
-        tu0JC*tu0JC));
+        tu0JC*tu0JC))
     
-    gmstRad=gmst*pi/43200; 
+    gmstRad=gmst*pi/43200 
     
-    earthgmstRad = gmstRad; 
-    ###print(gmstRad)
+    earthgmstRad = gmstRad 
+    
     # ------------------------------------------------------------------------
-    # Now calculating 3 terms, describing  lunisolar precession;
+    # Now calculating 3 terms, describing  lunisolar precession
     # see Eqs. 3.212 on pp. 104-5 in Explanatory Supp.
     # -------------------------------------------------------------------------
     
@@ -225,18 +231,18 @@ def barycentre_earth(Eephem, Sephem, tGPS):
     
     earthzA = tuJC*(2306.2181 + (1.09468 + 0.018203*tuJC)*tuJC ) *pi/6.48e5
     
-    earththetaA = tuJC*(2004.3109 - (0.42665 + 0.041833*tuJC)*tuJC )*pi/6.48e5;
+    earththetaA = tuJC*(2004.3109 - (0.42665 + 0.041833*tuJC)*tuJC )*pi/6.48e5
     
     # --------------------------------------------------------------------------
     # Now adding approx nutation (= short-period,forced motion, by definition).
     # These two dominant terms, with periods 18.6 yrs (big term) and
-    # 0.500 yrs (small term),respp., give nutation to around 1 arc sec; see
+    # 0.500 yrs (small term),respp., give nutation to around 1 arc sec see
     # p. 120 of Explan. Supp. The forced nutation amplitude
     # is around 17 arcsec.
     #
     # Note the unforced motion or Chandler wobble (called ``polar motion''
     # in Explanatory Supp) is not included here. However its amplitude is
-    # order of (and a somewhat less than) 1 arcsec; see plot on p. 270 of
+    # order of (and a somewhat less than) 1 arcsec see plot on p. 270 of
     # Explanatory Supplement to Ast. Alm.
     # --------------------------------------------------------------------------
     
@@ -253,11 +259,10 @@ def barycentre_earth(Eephem, Sephem, tGPS):
         cos( (200.9 + 1.97129*daysSinceJ2000)*pi/180.0 )]
     
     # '`equation of the equinoxes''
-    earthgastRad = gmstRad + earthdelpsi[0]*cos(eps0);
-    ##print(earthgastRad)
+    earthgastRad = gmstRad + earthdelpsi[0]*cos(eps0)
     
     # ------------------------------------------------------------------------
-    # Now calculating 3 terms, describing  lunisolar precession;
+    # Now calculating 3 terms, describing  lunisolar precession
     # see Eqs. 3.212 on pp. 104-5 in Explanatory Supp.
     # -------------------------------------------------------------------------
     
@@ -273,13 +278,13 @@ def barycentre_earth(Eephem, Sephem, tGPS):
     # --------------------------------------------------------------------------
     # Now adding approx nutation (= short-period,forced motion, by definition).
     # These two dominant terms, with periods 18.6 yrs (big term) and
-    # 0.500 yrs (small term),respp., give nutation to around 1 arc sec; see
+    # 0.500 yrs (small term),respp., give nutation to around 1 arc sec see
     # p. 120 of Explan. Supp. The forced nutation amplitude
     # is around 17 arcsec.
     #
     # Note the unforced motion or Chandler wobble (called ``polar motion''
     # in Explanatory Supp) is not included here. However its amplitude is
-    # order of (and a somewhat less than) 1 arcsec; see plot on p. 270 of
+    # order of (and a somewhat less than) 1 arcsec see plot on p. 270 of
     # Explanatory Supplement to Ast. Alm.
     # --------------------------------------------------------------------------
     
@@ -297,7 +302,7 @@ def barycentre_earth(Eephem, Sephem, tGPS):
         cos( (200.9 + 1.97129*daysSinceJ2000)*pi/180.0 )]
     
     # '`equation of the equinoxes''
-    earthgastRad = gmstRad + earthdelpsi[0]*cos(eps0);
+    earthgastRad = gmstRad + earthdelpsi[0]*cos(eps0)
     
     
     # **********************************************************************
@@ -305,16 +310,16 @@ def barycentre_earth(Eephem, Sephem, tGPS):
     # TDB and TDT.
     # We steal from TEMPO the approx 20 biggest terms in an expansion.
     # -----------------------------------------------------------------------
-    # jedtdt is Julian date (TDT) MINUS 2451545.0 (TDT);
+    # jedtdt is Julian date (TDT) MINUS 2451545.0 (TDT)
     #  -7300.5 = 2444244.5 (Julian date when gps clock started)
-    #        - 2451545.0 TDT (approx. J2000.0);
+    #        - 2451545.0 TDT (approx. J2000.0)
     # Note the 51.184 s difference between TDT and GPS
     # -----------------------------------------------------------------------
     
-    jedtdt = -7300.5 + (tgps[0] + 51.184 + tgps[1]*1.e-9)/8.64e4;
+    jedtdt = -7300.5 + (tgps[0] + 51.184 + tgps[1]*1.e-9)/8.64e4
     # converting to TEMPO expansion param = Julian millenium, NOT Julian
     # century
-    jt = jedtdt/3.6525e5;
+    jt = jedtdt/3.6525e5
     
     eartheinstein = 1.e-6*( 
         1656.674564e0 * sin(6283.075849991*jt + 6.240054195 ) + 
@@ -336,7 +341,7 @@ def barycentre_earth(Eephem, Sephem, tGPS):
         0.486306e0 * sin(5884.926846583 *jt + 0.520007179 )   + 
         0.432392e0 * sin(74.781598567 *jt + 2.435898309 )   + 
         0.468597e0 * sin(6244.942814354 *jt + 5.866398759 )   + 
-        0.375510e0 * sin(5507.553238667 *jt + 4.103476804 ));
+        0.375510e0 * sin(5507.553238667 *jt + 4.103476804 ))
     
     # now adding NEXT biggest (2nd-tier) terms from Tempo
     eartheinstein = eartheinstein + 1.e-6*( 
@@ -359,7 +364,7 @@ def barycentre_earth(Eephem, Sephem, tGPS):
         0.064397 * sin(5746.271337896 *jt + 1.280308748 )   + 
         0.063814 * sin(5760.498431898 *jt + 4.167901731 )   + 
         0.048042 * sin(2146.165416475 *jt + 1.495846011 )   + 
-        0.048373 * sin(155.420399434 *jt + 2.251573730 ));
+        0.048373 * sin(155.420399434 *jt + 2.251573730 ))
     
     
     # below, I've just taken derivative of above expression for einstein,
@@ -377,7 +382,7 @@ def barycentre_earth(Eephem, Sephem, tGPS):
         cos(6069.776754553*jt + 4.021195093 )   + 
         1.554905*77713.771467920* 
         cos(77713.771467920*jt + 5.198467090 ) 
-        )/(8.64e4*3.6525e5);
+        )/(8.64e4*3.6525e5)
     
     # neglect the following terms next terms (all also divided by
     # 8.64e4*3.6525e5)
@@ -444,28 +449,28 @@ def barycentre_earth(Eephem, Sephem, tGPS):
     earthse = np.zeros([3,1])
     earthdse = np.zeros([3,1])
     
-    earthdrse = 0;
-    rse2 = earthdrse;
+    earthdrse = 0
+    rse2 = earthdrse
     
     for j in range(3):
         sunPosNow[j] = sunPos[j] + sunVel[j]*tdiffS + 0.5*sunAcc[j]*tdiff2S
         sunVelNow[j] = sunVel[j] + sunAcc[j]*tdiffS
     
         earthse[j] = earthposNow[j] - sunPosNow[j]
-        earthdse[j] = earthvelNow[j] - sunVelNow[j];
-        rse2 = rse2 + earthse[j]*earthse[j];
-        earthdrse = earthdrse + earthse[j] * earthdse[j];
+        earthdse[j] = earthvelNow[j] - sunVelNow[j]
+        rse2 = rse2 + earthse[j]*earthse[j]
+        earthdrse = earthdrse + earthse[j] * earthdse[j]
     
     
-    earthrse=sqrt(rse2);
+    earthrse=sqrt(rse2)
     earthstruct = np.array([[earthposNow,earthvelNow,earthgmstRad], 
             [earthtzeA, earthzA, earththetaA],
             [earthdelpsi, earthdeleps, earthgastRad],
             [eartheinstein, earthdeinstein], 
             [earthse, earthdse, earthdrse, earthrse]])
         
-    earthrse=sqrt(rse2);
-    earthdrse = earthdrse/earthrse;
+    earthrse=sqrt(rse2)
+    earthdrse = earthdrse/earthrse
     earthstruct = np.array([[earthposNow,earthvelNow,earthgmstRad], 
             [earthtzeA, earthzA, earththetaA],
             [earthdelpsi, earthdeleps, earthgastRad],

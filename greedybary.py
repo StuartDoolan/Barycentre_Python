@@ -16,11 +16,10 @@ detector = 'gb'
 #sourcetest = [0.5, -0.3]
 #source = [sourcealpha, sourcedelta]
 
-#create set of training waveforms, 86400s in a day
+#create set of training waveforms
 wl = 102
-
 #sets vector of time intervals of length wl from random acceptable starting point for one days worth of data
-start = r.randint(630720013, 1261785618)
+start = 630720013
 day = 86400
 tGPS = np.linspace(start, start+day, wl)
 dt = tGPS[1]-tGPS[0]

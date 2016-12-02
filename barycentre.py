@@ -29,7 +29,7 @@ def barycentre(baryinput, earthstruct):
     # The function transforms a detector arrival time (ta) to pulse emission
     # time (te) in # TDB (plus the constant light-travel-time from source to
     # SSB). Also returned is the time derivative dte/dta, and the time
-    # difference te(ta) - ta. This is contained in the emit structure:
+    # difference te(ta) - ta. This is contained in the arrays:
     #   emitte - pulse emission time
     #   emittDot - time derivative
     #   emitdeltaT - time difference
@@ -38,7 +38,7 @@ def barycentre(baryinput, earthstruct):
     #   emiteinstein - Einstein delay
     #   emitshapiro - Shapiro delay
     #
-    # This function is a Matlab-ified version of Curt Cutler's LAL function
+    # This function is a translation of Matthew Pitkin's Matlab-ified version of Curt Cutler's LAL function
     # LALBarycenter.
     
     # ang. vel. of Earth (rad/sec)
@@ -48,8 +48,7 @@ def barycentre(baryinput, earthstruct):
     [binsloc, bingps, baryinsource]= baryinput 
     [bingpss, bingpsns] = bingps
     [binalpha, bindelta, bindInv] = baryinsource
-    ##print(type(baryinput))
-    ##print(type(bingps))
+    
     [[earthposNow, earthvelNow, earthgmstRad],
     [earthtzeA, earthzA, earththetaA],
     [earthdelpsi, earthdeleps, earthgastRad],
@@ -64,7 +63,6 @@ def barycentre(baryinput, earthstruct):
     
     tgps[0] = bingpss;
     tgps[1] = bingpsns;
-    ##print(tgps)
     alpha = binalpha;
     delta = bindelta;
     
@@ -72,6 +70,7 @@ def barycentre(baryinput, earthstruct):
     if abs(alpha) > 2*pi or abs(delta) > 0.5*pi:
         print('Source position is not in reasonable range');
         emit = 0
+        raise SystemExit()
         
     
     
@@ -83,7 +82,6 @@ def barycentre(baryinput, earthstruct):
     rd = sqrt( binsloc[0]*binsloc[0] 
         + binsloc[1]*binsloc[1] 
         + binsloc[2]*binsloc[2])
-    ##print(rd)
     if rd == 0.0:
         latitude = pi/2;
     else:
@@ -242,8 +240,7 @@ def barycentre(baryinput, earthstruct):
     # emit->deltaT = emit.te - tgps.
     # -----------------------------------------------------------------------
     
-    emitdeltaT = roemer + erot + eartheinstein - shapiro + finiteDistCorr;
-    ###print([roemer], [erot], [eartheinstein], [shapiro], [finiteDistCorr])
+    emitdeltaT = roemer + erot + eartheinstein - shapiro + finiteDistCorr
     emittDot = (1.e0 + droemer + derot + earthdeinstein 
         - dshapiro + dfiniteDistCorr)
     
@@ -263,5 +260,4 @@ def barycentre(baryinput, earthstruct):
     
     emit = np.array([emitdeltaT, emittDot, emittes, emittens, emitroemer,  emiterot, emiteinstein, 
     emitshapiro])
-    ######print(emitdeltaT)
     return emit
